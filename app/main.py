@@ -8,7 +8,10 @@ from app.api import auth, patients, records, prescriptions, vaccinations, labs, 
 import os
 
 # Create all database tables on startup
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Database table creation note: {e}")
 
 app = FastAPI(
     title="MediTrace AI",

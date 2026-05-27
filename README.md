@@ -121,6 +121,11 @@ users
 | `GET` | `/health` | ❌ | Health check |
 
 > Full interactive docs at `/docs` (Swagger UI) and `/redoc`
+> 💡 Note on Public Endpoints
+> ❌ Public endpoints are intentionally open by design:
+> registration/login require no prior auth by nature,
+> the emergency endpoint is public so any nurse can
+> scan a QR code without a MediTrace account.
 
 ---
 
@@ -217,22 +222,10 @@ meditrace-ai/
 
 ---
 
-## 🏆 Why MediTrace AI Wins
-
-| Judging Criteria | Weight | Our Approach |
-|---|---|---|
-| **Usefulness** | 30% | Solves real, life-threatening problem in African healthcare |
-| **Completeness** | 25% | Full-stack: auth, CRUD, AI, QR, emergency page — all working |
-| **Technical Quality** | 20% | 8-table relational DB, JWT auth, role-based access, audit logs |
-| **Creativity** | 15% | AI clinical summaries + QR emergency card is genuinely novel |
-| **Presentation** | 10% | Clean dark UI, cinematic demo flow, documented API |
-
----
-
 ## 👨‍💻 Built By
 
 **Abubakar Oluwatobi**  
-Data Analyst & Machine Learning Engineer · Lagos, Nigeria
+Python Developer  |  Data Science  · Lagos, Nigeria
 
 [![GitHub](https://img.shields.io/badge/GitHub-Oluwatobi--abu-181717?style=flat-square&logo=github)](https://github.com/Oluwatobi-abu)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-abubakaroluwatobi-0077B5?style=flat-square&logo=linkedin)](https://linkedin.com/in/abubakaroluwatobi)

@@ -527,18 +527,28 @@
     else alert(data.detail || 'Update failed');
   }
 
-  async function loadRecords() {
-    const res = await fetch(`${API}/records/`, { headers: headers() });
-    const records = await res.json();
-    const el = document.getElementById('records-list');
-    if (!records.length) { el.innerHTML = '<div style="color:#64748b;font-size:14px;">No records yet.</div>'; return; }
-    el.innerHTML = records.map(r => `
-      <div class="record-item">
-        <div><div class="record-title">${r.diagnosis}</div>
-        <div class="record-sub">${r.doctor_name || 'Unknown doctor'} · ${r.hospital || 'Unknown hospital'}</div></div>
-        <div class="record-date">${r.visit_date || '—'}</div>
-      </div>`).join('');
-  }
+    async function loadRecords() {
+        const res = await fetch(`${API}/records/`, { headers: headers() });
+        const records = await res.json();
+        const el = document.getElementById('records-list');
+        if (!records.length) { el.innerHTML = '<div style="color:#64748b;font-size:14px;">No records yet.</div>'; return; }
+        el.innerHTML = records.map(r => `
+        <div class="record-item">
+            <div><div class="record-title">${r.diagnosis}</div>
+            <div class="record-sub">${r.doctor_name || 'Unknown doctor'} · ${r.hospital || 'Unknown hospital'}</div></div>
+            <div style="display:flex;align-items:center;gap:10px;">
+            <div class="record-date">${r.visit_date || '—'}</div>
+            <button onclick="deleteRecord('${r.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">Delete</button>
+            </div>
+        </div>`).join('');
+    }
+
+    async function deleteRecord(id) {
+        if (!confirm('Delete this record?')) return;
+        const res = await fetch(`${API}/records/${id}`, { method: 'DELETE', headers: headers() });
+        if (res.ok) loadRecords();
+        else alert('Delete failed');
+    }
 
   async function addRecord() {
     const body = {
@@ -553,17 +563,25 @@
     else { const d = await res.json(); alert(d.detail || 'Failed'); }
   }
 
-  async function loadPrescriptions() {
-    const res = await fetch(`${API}/prescriptions/`, { headers: headers() });
-    const data = await res.json();
-    const el = document.getElementById('prescriptions-list');
-    if (!data.length) { el.innerHTML = '<div style="color:#64748b;font-size:14px;">No prescriptions yet.</div>'; return; }
-    el.innerHTML = data.map(p => `
-      <div class="record-item">
-        <div><div class="record-title">${p.drug_name} <span class="badge ${p.is_active ? 'badge-green' : 'badge-red'}">${p.is_active ? 'Active' : 'Inactive'}</span></div>
-        <div class="record-sub">${p.dosage || ''} · ${p.frequency || ''} · ${p.duration || ''}</div></div>
-      </div>`).join('');
-  }
+    async function loadPrescriptions() {
+        const res = await fetch(`${API}/prescriptions/`, { headers: headers() });
+        const data = await res.json();
+        const el = document.getElementById('prescriptions-list');
+        if (!data.length) { el.innerHTML = '<div style="color:#64748b;font-size:14px;">No prescriptions yet.</div>'; return; }
+        el.innerHTML = data.map(p => `
+        <div class="record-item">
+            <div><div class="record-title">${p.drug_name} <span class="badge ${p.is_active ? 'badge-green' : 'badge-red'}">${p.is_active ? 'Active' : 'Inactive'}</span></div>
+            <div class="record-sub">${p.dosage || ''} · ${p.frequency || ''} · ${p.duration || ''}</div></div>
+            <button onclick="deletePrescription('${p.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">Delete</button>
+        </div>`).join('');
+    }
+
+    async function deletePrescription(id) {
+        if (!confirm('Delete this prescription?')) return;
+        const res = await fetch(`${API}/prescriptions/${id}`, { method: 'DELETE', headers: headers() });
+        if (res.ok) loadPrescriptions();
+        else alert('Delete failed');
+    }
 
   async function addPrescription() {
     const body = {

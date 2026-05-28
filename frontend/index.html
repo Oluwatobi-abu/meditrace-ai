@@ -333,6 +333,7 @@
             <div class="form-group"><label>Next Due</label><input type="text" id="v-next" placeholder="2024-01-15" /></div>
             <div class="form-group"><label>Administered By</label><input type="text" id="v-by" placeholder="Dr. Fatima Aliyu" /></div>
           </div>
+          <div class="form-group"><label>Location</label><input type="text" id="v-location" placeholder="Lagos Island General Hospital" /></div>
           <button class="btn-sm" onclick="addVaccination()">Add Vaccination</button>
         </div>
         <div class="card">
@@ -551,16 +552,22 @@
     }
 
   async function addRecord() {
-    const body = {
-      diagnosis: document.getElementById('r-diagnosis').value,
-      doctor_name: document.getElementById('r-doctor').value,
-      hospital: document.getElementById('r-hospital').value,
-      visit_date: document.getElementById('r-date').value,
-      notes: document.getElementById('r-notes').value
-    };
-    const res = await fetch(`${API}/records/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
-    if (res.ok) { loadRecords(); document.getElementById('r-diagnosis').value = ''; }
-    else { const d = await res.json(); alert(d.detail || 'Failed'); }
+      const body = {
+        diagnosis: document.getElementById('r-diagnosis').value,
+        doctor_name: document.getElementById('r-doctor').value,
+        hospital: document.getElementById('r-hospital').value,
+        visit_date: document.getElementById('r-date').value,
+        notes: document.getElementById('r-notes').value
+      };
+      const res = await fetch(`${API}/records/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      if (res.ok) {
+        loadRecords();
+        document.getElementById('r-diagnosis').value = '';
+        document.getElementById('r-doctor').value = '';
+        document.getElementById('r-hospital').value = '';
+        document.getElementById('r-date').value = '';
+        document.getElementById('r-notes').value = '';
+      } else { const d = await res.json(); alert(d.detail || 'Failed'); }
   }
 
     async function loadPrescriptions() {
@@ -608,15 +615,22 @@
   }
 
   async function addVaccination() {
-    const body = {
-      vaccine_name: document.getElementById('v-name').value,
-      date_given: document.getElementById('v-date').value,
-      next_due: document.getElementById('v-next').value,
-      administered_by: document.getElementById('v-by').value
-    };
-    const res = await fetch(`${API}/vaccinations/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
-    if (res.ok) { loadVaccinations(); document.getElementById('v-name').value = ''; }
-    else { const d = await res.json(); alert(d.detail || 'Failed'); }
+      const body = {
+        vaccine_name: document.getElementById('v-name').value,
+        date_given: document.getElementById('v-date').value,
+        next_due: document.getElementById('v-next').value,
+        administered_by: document.getElementById('v-by').value,
+        location: document.getElementById('v-location').value
+      };
+      const res = await fetch(`${API}/vaccinations/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      if (res.ok) {
+        loadVaccinations();
+        document.getElementById('v-name').value = '';
+        document.getElementById('v-date').value = '';
+        document.getElementById('v-next').value = '';
+        document.getElementById('v-by').value = '';
+        document.getElementById('v-location').value = '';
+      } else { const d = await res.json(); alert(d.detail || 'Failed'); }
   }
 
   async function loadLabs() {
@@ -633,18 +647,26 @@
   }
 
   async function addLab() {
-    const body = {
-      test_name: document.getElementById('l-test').value,
-      result: document.getElementById('l-result').value,
-      unit: document.getElementById('l-unit').value,
-      reference_range: document.getElementById('l-ref').value,
-      lab_name: document.getElementById('l-lab').value,
-      test_date: document.getElementById('l-date').value,
-      is_abnormal: document.getElementById('l-abnormal').checked
-    };
-    const res = await fetch(`${API}/labs/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
-    if (res.ok) { loadLabs(); document.getElementById('l-test').value = ''; }
-    else { const d = await res.json(); alert(d.detail || 'Failed'); }
+      const body = {
+        test_name: document.getElementById('l-test').value,
+        result: document.getElementById('l-result').value,
+        unit: document.getElementById('l-unit').value,
+        reference_range: document.getElementById('l-ref').value,
+        lab_name: document.getElementById('l-lab').value,
+        test_date: document.getElementById('l-date').value,
+        is_abnormal: document.getElementById('l-abnormal').checked
+      };
+      const res = await fetch(`${API}/labs/`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      if (res.ok) {
+        loadLabs();
+        document.getElementById('l-test').value = '';
+        document.getElementById('l-result').value = '';
+        document.getElementById('l-unit').value = '';
+        document.getElementById('l-ref').value = '';
+        document.getElementById('l-lab').value = '';
+        document.getElementById('l-date').value = '';
+        document.getElementById('l-abnormal').checked = false;
+      } else { const d = await res.json(); alert(d.detail || 'Failed'); }
   }
 
   async function generateSummary() {

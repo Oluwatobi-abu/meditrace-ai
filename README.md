@@ -162,9 +162,22 @@ uvicorn app.main:app --reload
 ### Access Points
 | URL | Description |
 |---|---|
-| `http://127.0.0.1:8000` | Patient dashboard |
-| `http://127.0.0.1:8000/docs` | Swagger API docs |
-| `http://127.0.0.1:8000/health` | Health check |
+| `http://127.0.0.1:8000` | Patient dashboard (local) |
+| `http://127.0.0.1:8000/docs` | Swagger API docs (local) |
+| `http://127.0.0.1:8000/health` | Health check (local) |
+
+---
+
+## 🌍 Live Demo
+
+| URL | Description |
+|---|---|
+| `https://meditrace-ai.quikdb.net` | Live patient dashboard |
+| `https://meditrace-ai.quikdb.net/docs` | Live API documentation |
+| `https://meditrace-ai.quikdb.net/health` | Live health check |
+| `https://meditrace-ai.quikdb.net/static/emergency.html?token={qr_token}` | Emergency QR access |
+
+> Deployed on QuikDB Compute · Python 3.11 · West EU region
 
 ---
 

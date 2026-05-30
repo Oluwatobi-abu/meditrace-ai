@@ -70,7 +70,7 @@ def get_my_qr_code(current_user: User = Depends(get_current_user), db: Session =
         raise HTTPException(status_code=404, detail="Patient profile not found")
 
     # Generate QR code pointing to emergency endpoint
-    emergency_url = f"http://127.0.0.1:8000/emergency/{patient.qr_token}"
+    emergency_url = f"https://meditrace-ai.quikdb.net/static/emergency.html?token={patient.qr_token}"
     qr = qrcode.make(emergency_url)
 
     # Convert to base64 so frontend can display it as an image

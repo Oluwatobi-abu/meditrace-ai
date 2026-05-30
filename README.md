@@ -1,7 +1,7 @@
 # MediTrace AI 🏥
 
 > **AI-powered emergency health record platform for Africa**  
-> Built for the [#BuildQuik Challenge](https://lu.ma/cnk0mtop) Season 1 · May 2026
+> Built for the [#BuildQuik Challenge](https://lu.ma/cnk0mtop) · May 2026
 
 <div align="center">
 
@@ -232,6 +232,20 @@ Python Developer  |  Data Science  · Lagos, Nigeria
 
 ---
 
+## 🗺 Roadmap
+
+The current MVP focuses on the core emergency access use case. Planned features for future versions:
+
+- [ ] Hospital-scoped doctor access (HL7 FHIR consent model) — doctors see only patients affiliated with their facility
+- [ ] Doctor-initiated record creation — verified doctors append records directly to a patient's file
+- [ ] Patient notification system — alerts when a doctor views or updates your record
+- [ ] Offline-first mobile app — access emergency profile even without internet
+- [ ] NDPR compliance audit log export — full data access report for regulatory compliance
+- [ ] Multi-language support — Hausa, Yoruba, Igbo interfaces
+- [ ] Integration with NHIA (National Health Insurance Authority) database
+
+---
+
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE) for details.
@@ -240,7 +254,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**Built for #BuildQuik Challenge Season 1 · QuikDB · May 2026**
+**Built for #BuildQuik Challenge · QuikDB · May 2026**
 
 *Securing African Healthcare — one QR code at a time.* 🏥
 

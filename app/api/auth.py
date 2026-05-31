@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -8,16 +8,15 @@ from app.models.schemas import User, Patient
 import uuid
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
-
-# --- Pydantic request/response models ---
 
 class RegisterRequest(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    role: str = "patient"  # patient | doctor
+    role: str = "patient"
+
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -26,26 +25,38 @@ class TokenResponse(BaseModel):
     full_name: str
 
 
-# --- Dependency: get current logged-in user ---
+def get_current_user(
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> User:
+    # Try Authorization header first, then query param
+    final_token = token
+    if not final_token:
+        final_token = request.query_params.get("token")
+    if not final_token:
+        auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            final_token = auth_header[7:]
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    payload = decode_access_token(token)
+    if not final_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    payload = decode_access_token(final_token)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+
     user = db.query(User).filter(User.email == payload.get("sub")).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 
-# --- Routes ---
-
 @router.post("/register", status_code=201)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-
     user = User(
         id=str(uuid.uuid4()),
         full_name=data.full_name,
@@ -54,9 +65,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
         role=data.role
     )
     db.add(user)
-    db.flush()  # get user.id before committing
-
-    # Auto-create patient profile if role is patient
+    db.flush()
     if data.role == "patient":
         patient = Patient(
             id=str(uuid.uuid4()),
@@ -64,7 +73,6 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
             qr_token=str(uuid.uuid4())
         )
         db.add(patient)
-
     db.commit()
     db.refresh(user)
     return {"message": "Registration successful", "user_id": user.id, "role": user.role}
@@ -75,7 +83,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-
     token = create_access_token({"sub": user.email, "role": user.role})
     return TokenResponse(access_token=token, role=user.role, full_name=user.full_name)
 

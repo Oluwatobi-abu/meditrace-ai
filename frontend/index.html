@@ -415,7 +415,11 @@
   let currentUser = null;
 
   function headers() {
-    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    const t = token || localStorage.getItem('meditrace_token') || '';
+    return { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${t}`
+    };
   }
 
   function showError(msg) {
@@ -483,9 +487,14 @@
 
   async function enterDashboard() {
     if (!currentUser) {
-      const res = await fetch(`${API}/auth/me`, { headers: headers() });
-      if (!res.ok) return logout();
-      currentUser = await res.json();
+        const res = await fetch(`${API}/auth/me`, { 
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            } 
+        });
+        if (!res.ok) return logout();
+        currentUser = await res.json();
     }
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';

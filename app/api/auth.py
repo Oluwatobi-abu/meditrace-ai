@@ -80,6 +80,20 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return TokenResponse(access_token=token, role=user.role, full_name=user.full_name)
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+@router.post("/login/json")
+def login_json(data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user or not verify_password(data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    token = create_access_token({"sub": user.email, "role": user.role})
+    return TokenResponse(access_token=token, role=user.role, full_name=user.full_name)
+
+
 @router.get("/me")
 def get_me(current_user: User = Depends(get_current_user)):
     return {

@@ -30,10 +30,13 @@ def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> User:
-    # Try Authorization header first, then query param
     final_token = token
+    
+    # Try multiple sources
     if not final_token:
         final_token = request.query_params.get("token")
+    if not final_token:
+        final_token = request.headers.get("X-Auth-Token")
     if not final_token:
         auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):

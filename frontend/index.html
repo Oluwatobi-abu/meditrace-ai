@@ -411,15 +411,31 @@
 
 <script>
   const API = 'https://meditrace-ai.quikdb.net';
-  let token = localStorage.getItem('meditrace_token') || '';
+  let token = getCookie('meditrace_token') || localStorage.getItem('meditrace_token') || '';
   let currentUser = null;
 
+  function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+  }
+
+  function getCookie(name) {
+      const ca = document.cookie.split(';');
+      for (let c of ca) {
+          c = c.trim();
+          if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+      }
+      return '';
+  }
+
   function headers() {
-    const t = token || localStorage.getItem('meditrace_token') || '';
-    return { 
-        'Content-Type': 'application/json', 
-        'Authorization': `Bearer ${t}`
-    };
+      const t = token || getCookie('meditrace_token') || localStorage.getItem('meditrace_token') || '';
+      return {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${t}`,
+          'X-Auth-Token': t
+      };
   }
 
   function showError(msg) {
@@ -458,6 +474,7 @@
         if (!res.ok) return showError(data.detail || 'Login failed');
         token = data.access_token;
         localStorage.setItem('meditrace_token', token);
+        setCookie('meditrace_token', token, 1);
         currentUser = { full_name: data.full_name, role: data.role };
         enterDashboard();
     } catch (e) {
@@ -480,7 +497,9 @@
   }
 
   function logout() {
-    token = ''; localStorage.removeItem('meditrace_token');
+    token = '';
+    localStorage.removeItem('meditrace_token');
+    setCookie('meditrace_token', '', -1);
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
   }
@@ -515,21 +534,29 @@
   }
 
   async function loadOverview() {
-    const [records, prescriptions, vaccinations, labs, profile] = await Promise.all([
-      fetch(`${API}/records/`, { headers: headers() }).then(r => r.json()),
-      fetch(`${API}/prescriptions/`, { headers: headers() }).then(r => r.json()),
-      fetch(`${API}/vaccinations/`, { headers: headers() }).then(r => r.json()),
-      fetch(`${API}/labs/`, { headers: headers() }).then(r => r.json()),
-      fetch(`${API}/patients/me`, { headers: headers() }).then(r => r.json())
-    ]);
-    document.getElementById('stat-records').textContent = records.length || 0;
-    document.getElementById('stat-prescriptions').textContent = prescriptions.filter ? prescriptions.filter(p => p.is_active).length : 0;
-    document.getElementById('stat-vaccinations').textContent = vaccinations.length || 0;
-    document.getElementById('stat-labs').textContent = labs.length || 0;
-    document.getElementById('ov-blood').textContent = profile.blood_type || 'Not set';
-    document.getElementById('ov-genotype').textContent = profile.genotype || 'Not set';
-    document.getElementById('ov-allergies').innerHTML = profile.allergies ? `<span class="badge badge-red">${profile.allergies}</span>` : 'None';
-    document.getElementById('ov-emergency').textContent = profile.emergency_contact ? `${profile.emergency_contact} · ${profile.emergency_phone}` : 'Not set';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+        const [records, prescriptions, vaccinations, labs, profile] = await Promise.all([
+            fetch(`${API}/records/`, { headers: headers(), signal: controller.signal }).then(r => r.json()).catch(() => []),
+            fetch(`${API}/prescriptions/`, { headers: headers(), signal: controller.signal }).then(r => r.json()).catch(() => []),
+            fetch(`${API}/vaccinations/`, { headers: headers(), signal: controller.signal }).then(r => r.json()).catch(() => []),
+            fetch(`${API}/labs/`, { headers: headers(), signal: controller.signal }).then(r => r.json()).catch(() => []),
+            fetch(`${API}/patients/me`, { headers: headers(), signal: controller.signal }).then(r => r.json()).catch(() => ({}))
+        ]);
+        clearTimeout(timeout);
+        document.getElementById('stat-records').textContent = records.length || 0;
+        document.getElementById('stat-prescriptions').textContent = prescriptions.filter ? prescriptions.filter(p => p.is_active).length : 0;
+        document.getElementById('stat-vaccinations').textContent = vaccinations.length || 0;
+        document.getElementById('stat-labs').textContent = labs.length || 0;
+        document.getElementById('ov-blood').textContent = profile.blood_type || 'Not set';
+        document.getElementById('ov-genotype').textContent = profile.genotype || 'Not set';
+        document.getElementById('ov-allergies').innerHTML = profile.allergies ? `<span class="badge badge-red">${profile.allergies}</span>` : 'None';
+        document.getElementById('ov-emergency').textContent = profile.emergency_contact ? `${profile.emergency_contact} · ${profile.emergency_phone}` : 'Not set';
+    } catch (e) {
+        clearTimeout(timeout);
+        console.log('Overview load timeout or error:', e);
+    }
   }
 
   async function updateProfile() {

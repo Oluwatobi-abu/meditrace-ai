@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediTrace AI — Emergency Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0a0f1e; color: #e2e8f0; min-height: 100vh; }
+
+    .emergency-banner {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      padding: 16px 24px; text-align: center;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .emergency-banner .pulse-dot {
+      width: 12px; height: 12px; background: #fff; border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+    .emergency-banner span { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: .05em; }
+
+    .topbar {
+      background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 36px; height: 36px; background: linear-gradient(135deg, #00d4aa, #0099cc);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .logo span { font-size: 18px; font-weight: 700; color: #fff; }
+    .access-badge {
+      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+
+    .loading { text-align: center; padding: 80px 20px; }
+    .loading-spinner {
+      width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #00d4aa; border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: #64748b; font-size: 14px; }
+
+    .error-page { text-align: center; padding: 80px 20px; }
+    .error-icon { font-size: 64px; margin-bottom: 20px; }
+    .error-page h2 { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+    .error-page p { font-size: 14px; color: #64748b; }
+
+    /* PATIENT HEADER */
+    .patient-header {
+      background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(153,27,27,0.08));
+      border: 1px solid rgba(220,38,38,0.25); border-radius: 20px;
+      padding: 28px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 24px;
+    }
+    .patient-avatar {
+      width: 72px; height: 72px; background: linear-gradient(135deg, #dc2626, #991b1b);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; flex-shrink: 0;
+    }
+    .patient-name { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .patient-meta { font-size: 13px; color: #94a3b8; }
+
+    /* CRITICAL ALERTS */
+    .alert-bar {
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+    .alert-title { font-size: 13px; font-weight: 600; color: #f87171; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .alert-content { font-size: 15px; color: #fca5a5; font-weight: 500; }
+
+    /* GRID */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+      padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-icon { font-size: 18px; }
+    .card-title { font-size: 14px; font-weight: 600; color: #fff; }
+    .card-count {
+      margin-left: auto; background: rgba(0,212,170,0.15); color: #00d4aa;
+      padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500;
+    }
+
+    .vital-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .vital-item label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: #475569; display: block; margin-bottom: 4px;
+    }
+    .vital-item p { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+
+    .med-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .med-item:last-child { border-bottom: none; }
+    .med-dot { width: 8px; height: 8px; background: #00d4aa; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+    .med-name { font-size: 14px; font-weight: 500; color: #e2e8f0; }
+    .med-detail { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+    .diag-item {
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .diag-item:last-child { border-bottom: none; }
+    .diag-name { font-size: 14px; font-weight: 500; color: #e2e8f0; }
+    .diag-sub { font-size: 12px; color: #64748b; margin-top: 3px; }
+
+    .vacc-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .vacc-item:last-child { border-bottom: none; }
+    .vacc-name { font-size: 13px; color: #e2e8f0; }
+    .vacc-date { font-size: 12px; color: #64748b; }
+
+    .lab-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .lab-item:last-child { border-bottom: none; }
+    .lab-name { font-size: 13px; color: #e2e8f0; }
+    .lab-result { font-size: 13px; font-weight: 500; color: #f87171; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-red { background: rgba(239,68,68,0.15); color: #f87171; }
+    .badge-green { background: rgba(0,212,170,0.15); color: #00d4aa; }
+
+    /* AI SUMMARY */
+    .ai-card {
+      background: rgba(0,212,170,0.05); border: 1px solid rgba(0,212,170,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .ai-label { font-size: 14px; font-weight: 600; color: #00d4aa; }
+    .ai-powered { font-size: 11px; color: #475569; margin-left: auto; }
+    .ai-text { font-size: 13px; line-height: 1.8; color: #cbd5e1; white-space: pre-wrap; }
+
+    /* EMERGENCY CONTACT */
+    .contact-card {
+      background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .contact-name { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .contact-phone { font-size: 22px; font-weight: 700; color: #60a5fa; }
+
+    .disclaimer {
+      text-align: center; font-size: 11px; color: #334155;
+      margin-top: 32px; padding: 16px; border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .empty { font-size: 13px; color: #475569; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<div class="emergency-banner">
+  <div class="pulse-dot"></div>
+  <span>⚡ EMERGENCY MEDICAL ACCESS — MediTrace AI</span>
+  <div class="pulse-dot"></div>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    <span>MediTrace AI</span>
+  </div>
+  <div class="access-badge">🔓 Emergency Access</div>
+</div>
+
+<div class="container">
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading emergency health record...</p>
+  </div>
+
+  <div id="error-page" class="error-page" style="display:none">
+    <div class="error-icon">❌</div>
+    <h2>Patient Not Found</h2>
+    <p>This QR code is invalid or has been deactivated.<br/>Please contact MediTrace AI support.</p>
+  </div>
+
+  <div id="content" style="display:none">
+
+    <!-- PATIENT HEADER -->
+    <div class="patient-header">
+      <div class="patient-avatar">🧑‍⚕️</div>
+      <div>
+        <div class="patient-name" id="p-name">—</div>
+        <div class="patient-meta">Emergency Health Record · MediTrace AI</div>
+      </div>
+    </div>
+
+    <!-- ALLERGY ALERT -->
+    <div class="alert-bar" id="allergy-alert" style="display:none">
+      <div class="alert-icon">⚠️</div>
+      <div>
+        <div class="alert-title">Critical Allergy Alert</div>
+        <div class="alert-content" id="allergy-text">—</div>
+      </div>
+    </div>
+
+    <!-- VITAL INFO -->
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><span class="card-icon">🩸</span><span class="card-title">Critical Vitals</span></div>
+        <div class="vital-grid">
+          <div class="vital-item"><label>Blood Type</label><p id="v-blood">—</p></div>
+          <div class="vital-item"><label>Genotype</label><p id="v-genotype">—</p></div>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="card-header"><span class="card-icon">📞</span><span class="card-title">Emergency Contact</span></div>
+        <div class="contact-name" id="ec-name">—</div>
+        <div class="contact-phone" id="ec-phone">—</div>
+      </div>
+    </div>
+
+    <!-- ACTIVE MEDICATIONS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">💊</span>
+        <span class="card-title">Active Medications</span>
+        <span class="card-count" id="med-count">0</span>
+      </div>
+      <div id="med-list"><div class="empty">No active medications on record.</div></div>
+    </div>
+
+    <!-- RECENT DIAGNOSES -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📋</span>
+        <span class="card-title">Recent Diagnoses</span>
+        <span class="card-count" id="diag-count">0</span>
+      </div>
+      <div id="diag-list"><div class="empty">No diagnoses on record.</div></div>
+    </div>
+
+    <!-- GRID: VACCINATIONS + ABNORMAL LABS -->
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💉</span>
+          <span class="card-title">Vaccinations</span>
+          <span class="card-count" id="vacc-count">0</span>
+        </div>
+        <div id="vacc-list"><div class="empty">No vaccination records.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔬</span>
+          <span class="card-title">Abnormal Labs</span>
+          <span class="card-count" id="lab-count">0</span>
+        </div>
+        <div id="lab-list"><div class="empty">No abnormal results.</div></div>
+      </div>
+    </div>
+
+    <!-- AI SUMMARY -->
+    <div class="ai-card">
+      <div class="ai-header">
+        <span>🤖</span>
+        <span class="ai-label">AI Clinical Summary</span>
+        <span class="ai-powered">Powered by Groq · Llama 3.3</span>
+      </div>
+      <div class="ai-text" id="ai-text">No AI summary available. Patient should visit their dashboard to generate one.</div>
+    </div>
+
+    <div class="disclaimer">
+      This emergency health record is provided by MediTrace AI for authorized medical personnel only.
+      Information is provided as-is for emergency use. Always verify critical information with the patient when possible.
+      © MediTrace AI — Securing African Healthcare.
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://meditrace-ai.onrender.com';
+
+  // Extract QR token from URL — works as ?token=xxx or /emergency/xxx
+  function getToken() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) return params.get('token');
+    const parts = window.location.pathname.split('/');
+    return parts[parts.length - 1] || null;
+  }
+
+  async function loadEmergencyData() {
+    const token = getToken();
+    if (!token || token === 'emergency.html') {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-page').style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/emergency/${token}`);
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+      renderPage(data);
+    } catch (e) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-page').style.display = 'block';
+    }
+  }
+
+  function renderPage(data) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    const ep = data.emergency_profile;
+
+    // Patient header
+    document.getElementById('p-name').textContent = ep.full_name || 'Unknown Patient';
+    document.getElementById('v-blood').textContent = ep.blood_type || 'Unknown';
+    document.getElementById('v-genotype').textContent = ep.genotype || 'Unknown';
+
+    // Allergy alert
+    if (ep.allergies) {
+      document.getElementById('allergy-alert').style.display = 'flex';
+      document.getElementById('allergy-text').textContent = ep.allergies;
+    }
+
+    // Emergency contact
+    document.getElementById('ec-name').textContent = ep.emergency_contact || 'Not provided';
+    document.getElementById('ec-phone').textContent = ep.emergency_phone || '—';
+
+    // Medications
+    const meds = data.active_medications;
+    document.getElementById('med-count').textContent = meds.length;
+    document.getElementById('med-list').innerHTML = meds.length
+      ? meds.map(m => `
+          <div class="med-item">
+            <div class="med-dot"></div>
+            <div>
+              <div class="med-name">${m.drug_name}</div>
+              <div class="med-detail">${m.dosage || ''} · ${m.frequency || ''}</div>
+            </div>
+          </div>`).join('')
+      : '<div class="empty">No active medications.</div>';
+
+    // Diagnoses
+    const diags = data.recent_diagnoses;
+    document.getElementById('diag-count').textContent = diags.length;
+    document.getElementById('diag-list').innerHTML = diags.length
+      ? diags.map(d => `
+          <div class="diag-item">
+            <div class="diag-name">${d.diagnosis}</div>
+            <div class="diag-sub">${d.hospital || ''} · Dr. ${d.doctor || ''} · ${d.visit_date || ''}</div>
+          </div>`).join('')
+      : '<div class="empty">No diagnoses on record.</div>';
+
+    // Vaccinations
+    const vaccs = data.vaccinations;
+    document.getElementById('vacc-count').textContent = vaccs.length;
+    document.getElementById('vacc-list').innerHTML = vaccs.length
+      ? vaccs.map(v => `
+          <div class="vacc-item">
+            <span class="vacc-name">${v.vaccine}</span>
+            <span class="vacc-date">${v.date_given || '—'}</span>
+          </div>`).join('')
+      : '<div class="empty">No vaccination records.</div>';
+
+    // Abnormal labs
+    const labs = data.abnormal_labs;
+    document.getElementById('lab-count').textContent = labs.length;
+    document.getElementById('lab-list').innerHTML = labs.length
+      ? labs.map(l => `
+          <div class="lab-item">
+            <span class="lab-name">${l.test}</span>
+            <span class="lab-result">⚠️ ${l.result} ${l.unit || ''}</span>
+          </div>`).join('')
+      : '<div class="empty">No abnormal results.</div>';
+
+    // AI summary
+    if (data.ai_summary) {
+      document.getElementById('ai-text').textContent = data.ai_summary;
+    }
+  }
+
+  loadEmergencyData();
+</script>
+</body>
+</html>
